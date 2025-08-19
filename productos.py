@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+import os
 
 # ------------------------------
 # Configuración del driver
@@ -12,6 +13,16 @@ import time
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 driver.maximize_window()
 wait = WebDriverWait(driver, 10)
+
+# Carpeta para guardar capturas
+CAPTURAS_DIR = "capturas"
+os.makedirs(CAPTURAS_DIR, exist_ok=True)
+
+def tomar_captura(nombre):
+    """Guarda una captura de pantalla en la carpeta capturas/"""
+    ruta = os.path.join(CAPTURAS_DIR, f"{nombre}.png")
+    driver.save_screenshot(ruta)
+    print(f" Captura guardada: {ruta}")
 
 # ------------------------------
 # Funciones para Productos
@@ -21,6 +32,7 @@ BASE_URL = "http://localhost:8000/vistas/productos/"
 def listar_productos():
     driver.get(BASE_URL + "index.php")
     time.sleep(1)
+    tomar_captura("listar_productos")
     rows = driver.find_elements(By.CSS_SELECTOR, "tbody tr")
     productos = []
     for r in rows:
@@ -48,6 +60,7 @@ def crear_producto(nombre, precio, inventario, id_proveedor=1):
         opciones[1].click()  # tomar el primero válido
     driver.find_element(By.XPATH, "//button[text()='Guardar']").click()
     time.sleep(2)
+    tomar_captura("crear_producto")
 
 def editar_producto(id_prod, nuevo_nombre, nuevo_precio, nuevo_inventario):
     driver.get(BASE_URL + f"editar.php?id={id_prod}")
@@ -70,10 +83,12 @@ def editar_producto(id_prod, nuevo_nombre, nuevo_precio, nuevo_inventario):
 
     driver.find_element(By.NAME, "guardar").click()
     time.sleep(2)
+    tomar_captura("editar_producto")
 
 def eliminar_producto(id_prod):
     driver.get(BASE_URL + f"eliminar.php?id={id_prod}")
     time.sleep(2)
+    tomar_captura("eliminar_producto")
 
 # ------------------------------
 # Ejecución de pruebas
@@ -89,8 +104,7 @@ editar_producto(primer_producto, "Producto Editado", "200", "10")
 print("Lista después de editar:", listar_productos())
 
 # Eliminar producto (el último id de la lista)
-ultimo_producto = listar_productos()[-1]["id"]
-eliminar_producto(6)
+eliminar_producto(9)
 print("Lista después de eliminar:", listar_productos())
 
 # ------------------------------
